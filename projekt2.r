@@ -4,7 +4,16 @@ library(jsonlite)
 library(utils)
 library(sp)
 library(sf)
-library("spatstat")
+library(spatstat)
+library(maptools)
+library(automap)
+library(rgdal)
+library(raster)
+library(rgeos)
+library(gstat)
+library(tmaptools)
+
+
 
 
 #wczytanie klucza API z pliku
@@ -24,7 +33,7 @@ test15<-fromJSON(jsonRespText)
 longitude<-test15$location$longitude
 latitude<-test15$location$latitude
 data15<-data.frame(longitude,latitude)
-data15$elevation<-test15$elev
+data15$elevation<-test15$elev #wysokoœæ nie bedzie potrzebna, ale niech bêdzie dla przyk³adu
 data15$id<-test15$id
 
 head(data15)
@@ -48,6 +57,12 @@ krakowUTM<-st_transform(krakowWGS84,CRS("+proj=utm +zone=34 +datum=WGS84"))
 
 data15_ppp_id<-ppp(x=data_UTM$lon,y=data_UTM$lat,marks=data.frame(elev=data_UTM$elev,id=data_UTM$id),window=as.owin(krakowUTM))
 data15_ppp_id$marks$id #mamy od razu tylko te id które s¹ w Krakowie!
+
+data15_ppp<-ppp(x=data_UTM$lon,y=data_UTM$lat,window=as.owin(krakowUTM))
+plot(data15_ppp)
+
+data15_ppp_e<-ppp(x=data_UTM$lon,y=data_UTM$lat,marks=data_UTM$elev,window=as.owin(krakowUTM))
+plot(data15_ppp_e)
 
 #najpierw musimy utworzyæ:
 ##1) dwa obiekty zawieraj¹ce:
@@ -81,10 +96,99 @@ for (i in seq(1,n_id)) {
   jsonRespText<-content(r,as="text")
   inst<-fromJSON(jsonRespText)
   
-  list_instDzien1Rano<-inst #tutaj zmieniamy zmienn¹ do zapisu
+  list_instDzien1Rano[[i]]<-inst #tutaj zmieniamy zmienn¹ do zapisu
   
 }
 #koniec pêtli
 
 #zapis pe³nej listy do pliku (na wszelki wypadek, bo mamy tylko 100 zapytañ dziennie do AIRLY
 save(list_instDzien1Rano,file="saves/list_instDzien1Rano.Rdata") #tutaj tez zmieniamy zmienn¹ do zapisu
+
+#load(file="saves/list_instDzien1Rano.Rdata")
+
+list_inst2<-list_instDzien1Rano #tutaj tez zmieniamy zmienn¹
+
+#teraz wybieramy potrzebne dane
+##tworzymy pusty wektor dla danych "current"
+current<-rep(NA,n_id)
+
+##pêtla do "wyci¹gniêcia" wartoœci "current"
+for (i in seq(1,n_id)) {
+  
+  print(i)
+  
+  logic<-list_inst2[[i]]$current$values$name=="PM25" #zmienna logiczna do wyszukania pól o nazwie "PM25"
+  
+  if (sum(logic)==1) #testujemy, czy istnieje jedno i tylko jedno takie pole (zdarzaj¹ siê b³êdne odczyty - tych nie chcemy zapisaæ)
+    current[i]<-list_inst2[[i]]$current$values[logic,2] 
+}
+
+current
+
+data15_spdf<-as.SpatialPointsDataFrame.ppp(data15_ppp_id)
+coordinates(data15_spdf)
+# dodajemy kolumnê current
+data15_spdf$current<-current
+dev.off() #bo mo¿e wariowaæ RStudio
+plot(data15_spdf)
+
+miss <- is.na(data15_spdf$current)
+
+pm25_auto <- autoKrige(current ~ 1, input_data = data15_spdf[!miss,])
+plot(pm25_auto$krige_output[1],main="PM 2.5")
+points(data15_ppp_id[!miss,],pch="*",col="White")
+plot(Window(data15_ppp_e),add=TRUE)
+
+plot(pm25_auto)
+
+#zmieñmy model i porównajmy wyniki, popatrzmy na wariogram
+pm25_auto <- autoKrige(current ~ 1, input_data = data15_spdf[!miss,], model="Gau")
+plot(pm25_auto$krige_output[1],main="PM 2.5")
+points(data15_ppp_id[!miss,],pch="*",col="White")
+plot(pm25_auto)
+
+pm25_auto <- autoKrige(current ~ 1, input_data = data15_spdf[!miss,],
+                       model="Gau")
+show.vgms()
+show.vgms(models=c('Nug', 'Sph', 'Gau', 'Pow', 'Exp'), range=1.4,
+          max=2.5)
+
+##³adna mapa
+
+#Musimy mied kontur Krakowa w odpowiednim formacie:
+bound<-st_as_sf(krakowUTM)
+plot(bound)
+
+#Pobieramy wspó³rzêdne punktów konturu w formie macierzy:
+coord<-as.data.frame(st_coordinates(krakowUTM))
+
+#Najpierw utworzymy siatkê - prostok¹t okalaj¹cy kontur Krakowa:
+#1. Okreœlamy wspó³rzêdne naro¿y
+left_down<-c( min(coord$X), min(coord$Y))
+right_up<-c( max(coord$X), max(coord$Y))
+#2. Ustalamy rozmiar oczka siatki (100x100 metrów)
+size<-c(100,100)
+#3. Obliczamy liczbê oczek siatki przypadj¹cych na d³ugoœd i szerokoœd prostok¹ta:
+points<- (right_up-left_down)/size
+num_points<-ceiling(points) #zaokr¹glenie w górê
+#4. Wreszcie tworzymy siatkê…
+grid <- GridTopology(left_down, size,num_points)
+#5. …i konwertujemy j¹ do odpowiedniego formatu, w odpowiednim uk³adzie (tu: WGS84)
+gridpoints <- SpatialPoints(grid, proj4string = CRS("+proj=utm +zone=34
++datum=WGS84"))
+plot(gridpoints) #czekamy cierpliwie
+#Teraz przycinamy utworzon¹ siatkê konturem Krakowa funkcj¹ crop_shape z pakietu tmaptools
+g<-st_as_sf(gridpoints)#konwersja do formatu na którym dzia³a crop_shape
+cg<-crop_shape(g,bound,polygon = TRUE)
+spgrid <- SpatialPixels(as_Spatial(cg)) #konwersja z powrotem do st i
+#nastêpnie do SpatialPixels
+plot(spgrid)
+
+#Rysujemy mape z wykorzystaniem krigingu:
+##uwaga: ”current” zamiast ”marks”!
+elev_auto <- autoKrige(current ~ 1, input_data =
+                             data15_spdf[!miss,],new_data=spgrid)
+plot(elev_auto$krige_output[1],main="PM 2.5")
+points(data15_ppp_id[!miss,],pch="*",col="White")
+
+plot(elev_auto)
