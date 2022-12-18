@@ -73,7 +73,7 @@ n_id
 id<-data15_ppp_id$marks$id
 id
 ##2) pust¹ listê do odczytów z czujników (installations) AIRLY 
-list_instDzien1Rano <- vector(mode = "list", length = n_id) #funkcja do stworzenia struktury danych
+list_instDzien1Rano <- vector(mode = "list", length = n_id) #18.12.2022 9:02 7km/h zach
 list_instDzien1Poludnie <- vector(mode = "list", length = n_id)
 list_instDzien1Wieczor <- vector(mode = "list", length = n_id)
 
