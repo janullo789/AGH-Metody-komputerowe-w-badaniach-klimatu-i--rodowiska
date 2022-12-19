@@ -77,7 +77,7 @@ list_instDzien1Rano <- vector(mode = "list", length = n_id) #18.12.2022 9:02 7km
 list_instDzien1Poludnie <- vector(mode = "list", length = n_id) #18.12.2022 17:04 7km/h wsch
 list_instDzien1Wieczor <- vector(mode = "list", length = n_id) #18.12.2022 20.08 13 km/h 	p³n. wsch
 
-list_instDzien2Rano <- vector(mode = "list", length = n_id)
+list_instDzien2Rano <- vector(mode = "list", length = n_id) # 19.12.2022 8:20 5km/h wsch
 list_instDzien2Poludnie <- vector(mode = "list", length = n_id)
 list_instDzien2Wieczor <- vector(mode = "list", length = n_id)
 
@@ -96,17 +96,17 @@ for (i in seq(1,n_id)) {
   jsonRespText<-content(r,as="text")
   inst<-fromJSON(jsonRespText)
   
-  list_instDzien1Wieczor[[i]]<-inst #tutaj zmieniamy zmienn¹ do zapisu
+  list_instDzien2Rano[[i]]<-inst #tutaj zmieniamy zmienn¹ do zapisu
   
 }
 #koniec pêtli
 
 #zapis pe³nej listy do pliku (na wszelki wypadek, bo mamy tylko 100 zapytañ dziennie do AIRLY
-save(list_instDzien1Wieczor,file="saves/list_instDzien1Wieczor.Rdata") #tutaj tez zmieniamy zmienn¹ do zapisu
+save(list_instDzien2Rano,file="saves/list_instDzien2Rano.Rdata") #tutaj tez zmieniamy zmienn¹ do zapisu
 
-#load(file="saves/list_instDzien1Rano.Rdata")
+#load(file="saves/list_instDzien2Rano.Rdata")
 
-list_inst2<-list_instDzien1Wieczor #tutaj tez zmieniamy zmienn¹
+list_inst2<-list_instDzien2Rano #tutaj tez zmieniamy zmienn¹
 
 #teraz wybieramy potrzebne dane
 ##tworzymy pusty wektor dla danych "current"
@@ -192,6 +192,14 @@ plot(elev_auto$krige_output[1],main="PM 2.5")
 points(data15_ppp_id[!miss,],pch="*",col="White")
 
 plot(elev_auto)
+
+
+
+
+
+
+
+
 
 ###### temperatura (skopiowane co jest wyzej z podmienionymi danymi)
 for (i in seq(1,n_id)) {
