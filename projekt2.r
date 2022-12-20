@@ -81,7 +81,7 @@ list_instDzien2Rano <- vector(mode = "list", length = n_id) # 19.12.2022 8:20 5k
 list_instDzien2Poludnie <- vector(mode = "list", length = n_id) #19.12.2022 16:40  6km/h p³n, wsch.
 list_instDzien2Wieczor <- vector(mode = "list", length = n_id) #19.12.2022 20:45 4 km/g p³n. wsch
 
-list_instDzien3Rano <- vector(mode = "list", length = n_id)
+list_instDzien3Rano <- vector(mode = "list", length = n_id) #20.12.2022 9:20 7km/h pd. zach
 list_instDzien3Poludnie <- vector(mode = "list", length = n_id)
 list_instDzien3Wieczor <- vector(mode = "list", length = n_id)
 
@@ -96,17 +96,17 @@ for (i in seq(1,n_id)) {
   jsonRespText<-content(r,as="text")
   inst<-fromJSON(jsonRespText)
   
-  list_instDzien2Wieczor[[i]]<-inst #tutaj zmieniamy zmienn¹ do zapisu
+  list_instDzien3Rano[[i]]<-inst #tutaj zmieniamy zmienn¹ do zapisu
   
 }
 #koniec pêtli
 
 #zapis pe³nej listy do pliku (na wszelki wypadek, bo mamy tylko 100 zapytañ dziennie do AIRLY
-save(list_instDzien2Wieczor,file="saves/list_instDzien2Wieczor.Rdata") #tutaj tez zmieniamy zmienn¹ do zapisu
+save(list_instDzien3Rano,file="saves/list_instDzien3Rano.Rdata") #tutaj tez zmieniamy zmienn¹ do zapisu
 
 #load(file="saves/list_instDzien2Poludnie.Rdata")
 
-list_inst2<-list_instDzien2Poludnie #tutaj tez zmieniamy zmienn¹
+list_inst2<-list_instDzien3Rano #tutaj tez zmieniamy zmienn¹
 
 #teraz wybieramy potrzebne dane
 ##tworzymy pusty wektor dla danych "current"
