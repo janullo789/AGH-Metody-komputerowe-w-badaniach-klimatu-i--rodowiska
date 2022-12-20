@@ -82,7 +82,7 @@ list_instDzien2Poludnie <- vector(mode = "list", length = n_id) #19.12.2022 16:4
 list_instDzien2Wieczor <- vector(mode = "list", length = n_id) #19.12.2022 20:45 4 km/g p³n. wsch
 
 list_instDzien3Rano <- vector(mode = "list", length = n_id) #20.12.2022 9:20 7km/h pd. zach
-list_instDzien3Poludnie <- vector(mode = "list", length = n_id)
+list_instDzien3Poludnie <- vector(mode = "list", length = n_id) #20.12.2022 16:20 2km/h zach
 list_instDzien3Wieczor <- vector(mode = "list", length = n_id)
 
 for (i in seq(1,n_id)) {
