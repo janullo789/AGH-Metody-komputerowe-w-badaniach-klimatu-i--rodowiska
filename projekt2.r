@@ -102,11 +102,11 @@ for (i in seq(1,n_id)) {
 #koniec pêtli
 
 #zapis pe³nej listy do pliku (na wszelki wypadek, bo mamy tylko 100 zapytañ dziennie do AIRLY
-save(list_instDzien3Wieczor,file="saves/list_instDzien3Wieczor.Rdata") #tutaj tez zmieniamy zmienn¹ do zapisu
+#save(list_instDzien3Wieczor,file="saves/list_instDzien3Wieczor.Rdata") #tutaj tez zmieniamy zmienn¹ do zapisu
 
-#load(file="saves/list_instDzien2Poludnie.Rdata")
+load(file="saves/list_instDzien3Poludnie.Rdata")
 
-list_inst2<-list_instDzien3Wieczor #tutaj tez zmieniamy zmienn¹
+list_inst2<-list_instDzien3Poludnie #tutaj tez zmieniamy zmienn¹
 
 #teraz wybieramy potrzebne dane
 ##tworzymy pusty wektor dla danych "current"
